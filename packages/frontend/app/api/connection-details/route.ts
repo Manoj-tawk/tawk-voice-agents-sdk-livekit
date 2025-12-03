@@ -3,8 +3,8 @@ import {
   AccessToken,
   type AccessTokenOptions,
   type VideoGrant,
+  RoomServiceClient,
 } from "livekit-server-sdk";
-import { RoomConfiguration, RoomAgentDispatch } from "@livekit/protocol";
 
 // LiveKit Server Configuration
 const API_KEY = process.env.LIVEKIT_API_KEY || "devkey";
@@ -17,12 +17,19 @@ export async function POST(req: Request) {
   try {
     // Parse agent configuration from request body
     const body = await req.json().catch(() => ({}));
-    // Get agentName from request body or use default 'Quinn_353'
-    // This matches the backend ServerOptions.agentName
+    
+    // Get agentName from multiple sources:
+    // 1. URL search params (from query string)
+    // 2. Request body (room_config or agentName)
+    // 3. Default fallback
+    const url = new URL(req.url);
+    const agentNameFromQuery = url.searchParams.get('agent');
+    
     const agentName: string =
+      agentNameFromQuery ||
       body?.room_config?.agents?.[0]?.agent_name ||
       body?.agentName ||
-      "Quinn_353";
+      "test-agent"; // Default to test-agent (created via API)
 
     // Generate participant token
     const participantName = "user";
@@ -98,19 +105,41 @@ async function createParticipantToken(
   };
   at.addGrant(grant);
 
-  // Always add room configuration with agent for explicit dispatch
-  // Reference: https://docs.livekit.io/agents/server/agent-dispatch#dispatch-on-participant-connection
-  // This ensures the agent is dispatched when the participant connects
-  at.roomConfig = new RoomConfiguration({
-    agents: [
-      new RoomAgentDispatch({
-        agentName: agentName || "Quinn_353", // Default to 'Quinn_353' if not provided
-      }),
-    ],
-  });
+  // Use automatic dispatch with room metadata instead of explicit dispatch
+  // Since our agent server is registered without agentName, it uses automatic dispatch
+  // We pass the agent name via room metadata so the router can load the correct agent
+  if (agentName) {
+    // Create room with metadata containing agent name
+    // This allows automatic dispatch to work, and the router reads agentName from room metadata
+    const roomClient = new RoomServiceClient(
+      LIVEKIT_URL.replace(/^ws/, 'http'),
+      API_KEY,
+      API_SECRET,
+    );
+    
+    try {
+      await roomClient.createRoom({
+        name: roomName,
+        metadata: JSON.stringify({ agentName, agent_name: agentName }),
+      });
+      console.log(`[connection-details] Room created with metadata: agentName=${agentName}`);
+    } catch (error: any) {
+      // Room might already exist, try to update metadata
+      if (error?.message?.includes('already exists')) {
+        try {
+          await roomClient.updateRoomMetadata(roomName, JSON.stringify({ agentName, agent_name: agentName }));
+          console.log(`[connection-details] Room metadata updated: agentName=${agentName}`);
+        } catch (updateError) {
+          console.warn(`[connection-details] Failed to update room metadata: ${updateError}`);
+        }
+      } else {
+        console.warn(`[connection-details] Failed to create/update room: ${error}`);
+      }
+    }
+  }
 
   console.log(
-    `[connection-details] Token created with agent dispatch: ${agentName || "Quinn_353"}`,
+    `[connection-details] Token created for room: ${roomName}, agentName: ${agentName || "none (automatic dispatch)"}`,
   );
 
   // Return JWT token (async - toJwt() returns Promise<string>)

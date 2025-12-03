@@ -30,9 +30,17 @@ interface AppProps {
 
 export function App({ appConfig }: AppProps) {
   const tokenSource = useMemo(() => {
-    return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === "string"
-      ? getSandboxTokenSource(appConfig)
-      : TokenSource.endpoint("/api/connection-details");
+    if (typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === "string") {
+      return getSandboxTokenSource(appConfig);
+    }
+    
+    // For local endpoint, include agentName in the URL if available
+    let endpoint = "/api/connection-details";
+    if (appConfig.agentName) {
+      endpoint += `?agent=${encodeURIComponent(appConfig.agentName)}`;
+    }
+    
+    return TokenSource.endpoint(endpoint);
   }, [appConfig]);
 
   const session = useSession(

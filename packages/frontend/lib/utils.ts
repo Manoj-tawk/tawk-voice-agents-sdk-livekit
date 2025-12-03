@@ -118,6 +118,11 @@ export function getSandboxTokenSource(appConfig: AppConfig) {
       : undefined;
 
     try {
+      // Include agentName in both URL query and body for maximum compatibility
+      if (appConfig.agentName) {
+        url.searchParams.set('agent', appConfig.agentName);
+      }
+      
       const res = await fetch(url.toString(), {
         method: "POST",
         headers: {
@@ -126,6 +131,7 @@ export function getSandboxTokenSource(appConfig: AppConfig) {
         },
         body: JSON.stringify({
           room_config: roomConfig,
+          agentName: appConfig.agentName,
         }),
       });
       return await res.json();

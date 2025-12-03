@@ -1,4 +1,5 @@
 import { Button } from "@/components/livekit/button";
+import Link from "next/link";
 
 function WelcomeImage() {
   return (
@@ -47,7 +48,13 @@ export const WelcomeView = ({
         </Button>
       </section>
 
-      <div className="fixed bottom-5 left-0 flex w-full items-center justify-center">
+      <div className="fixed bottom-5 left-0 flex w-full flex-col items-center justify-center gap-2">
+        <Link
+          href="/agents"
+          className="text-primary hover:underline text-sm font-medium"
+        >
+          Manage Agents →
+        </Link>
         <p className="text-muted-foreground max-w-prose pt-1 text-xs leading-5 font-normal text-pretty md:text-sm">
           Need help getting set up? Check out the{" "}
           <a
