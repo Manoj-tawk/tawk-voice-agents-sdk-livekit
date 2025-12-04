@@ -43,6 +43,7 @@ webhook:
   urls: []
   api_key: ""
 
-limits:
-  num_tracks: 30
-  bytes_per_sec: 50000000  # 50 MB/s
+# limits section removed - not supported in this version
+# limits:
+#   num_tracks: 30
+#   bytes_per_sec: 50000000  # 50 MB/s
