@@ -19,8 +19,47 @@ import { BackgroundVoiceCancellation } from "@livekit/noise-cancellation-node";
 import dotenv from "dotenv";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { initTelemetry } from "./telemetry.js";
 
 dotenv.config({ path: ".env.local" });
+
+// Initialize OpenTelemetry for SigNoz observability
+initTelemetry();
+
+// ==================== Observability Helper ====================
+/**
+ * Send metrics to SigNoz via OpenTelemetry
+ * Metrics are automatically collected and sent via the configured tracer
+ */
+function sendMetricsToSigNoz(metricsData: any, ctx: JobContext) {
+  try {
+    const { trace, context } = require('@opentelemetry/api');
+    const tracer = trace.getTracer('tawk-voice-agent');
+    
+    // Create a span for this metrics event
+    const span = tracer.startSpan('agent.metrics', {
+      attributes: {
+        'job.id': ctx.job.id,
+        'room.name': ctx.room.name,
+        'agent.name': 'Quinn_353',
+      },
+    });
+
+    // Add metrics as span attributes
+    if (metricsData) {
+      for (const [key, value] of Object.entries(metricsData)) {
+        if (typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean') {
+          span.setAttribute(`metrics.${key}`, value);
+        }
+      }
+    }
+
+    span.end();
+  } catch (error) {
+    // Silently fail if telemetry is not available
+    // This allows the agent to work without observability if needed
+  }
+}
 
 // ==================== Marketplace AI Agent ====================
 // tawk.to marketplace assistant with order tracking, shipping, and product search
@@ -679,8 +718,14 @@ export default defineAgent({
     // Metrics collection, to measure pipeline performance
     const usageCollector = new metrics.UsageCollector();
     session.on(voice.AgentSessionEventTypes.MetricsCollected, (ev) => {
+      // Log metrics to console
       metrics.logMetrics(ev.metrics);
+      
+      // Collect for usage summary
       usageCollector.collect(ev.metrics);
+      
+      // Send to SigNoz for observability
+      sendMetricsToSigNoz(ev.metrics, ctx);
     });
 
     const logUsage = async () => {

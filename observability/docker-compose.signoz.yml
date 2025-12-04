@@ -1,0 +1,93 @@
+version: '3.8'
+
+# SigNoz - Open-source Observability Platform
+# Includes: Metrics, Traces, Logs, and Dashboards
+# Access UI at: http://localhost:3301
+
+services:
+  # ClickHouse for storing traces and metrics
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.7.3-alpine
+    container_name: signoz-clickhouse
+    hostname: clickhouse
+    ports:
+      - "9000:9000"     # Native client port
+      - "8123:8123"     # HTTP port
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse/
+    environment:
+      - CLICKHOUSE_DB=signoz_traces
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'localhost:8123/ping']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Query Service - SigNoz backend
+  query-service:
+    image: signoz/query-service:0.35.0
+    container_name: signoz-query-service
+    command: ["-config=/root/config/prometheus.yml"]
+    ports:
+      - "8080:8080"   # Query service HTTP
+      - "6060:6060"   # pprof port
+    volumes:
+      - ./signoz-config/prometheus.yml:/root/config/prometheus.yml
+    environment:
+      - STORAGE=clickhouse
+      - GODEBUG=netdns=go
+      - TELEMETRY_ENABLED=false
+      - DEPLOYMENT_TYPE=docker-standalone-amd
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  # Frontend - SigNoz UI
+  frontend:
+    image: signoz/frontend:0.35.0
+    container_name: signoz-frontend
+    ports:
+      - "3301:3301"   # SigNoz UI
+    environment:
+      - FRONTEND_API_ENDPOINT=http://query-service:8080
+    depends_on:
+      - query-service
+
+  # OTel Collector - Receives telemetry data
+  otel-collector:
+    image: signoz/signoz-otel-collector:0.88.11
+    container_name: signoz-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics
+      - "8889:8889"   # Prometheus exporter
+      - "9411:9411"   # Zipkin receiver
+      - "13133:13133" # Health check
+    volumes:
+      - ./signoz-config/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    environment:
+      - OTEL_RESOURCE_ATTRIBUTES=host.name=signoz-host,os.type=linux
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  # AlertManager (optional)
+  alertmanager:
+    image: signoz/alertmanager:0.23.4
+    container_name: signoz-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./signoz-config/alertmanager-config.yaml:/etc/alertmanager/config.yaml
+    command:
+      - --config.file=/etc/alertmanager/config.yaml
+
+volumes:
+  clickhouse-data:
+
+networks:
+  default:
+    name: signoz-network
+
