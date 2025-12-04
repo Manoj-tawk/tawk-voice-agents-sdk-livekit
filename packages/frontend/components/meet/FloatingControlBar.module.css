@@ -1,0 +1,134 @@
+.container {
+  position: fixed;
+  bottom: var(--space-8);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-fixed);
+  transition: all var(--transition-base) var(--ease-out);
+}
+
+.container.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+  pointer-events: none;
+}
+
+.controlBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  background: var(--control-bar-bg);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-xl);
+  animation: slideUp 0.4s var(--ease-out);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.button {
+  width: var(--control-button-size);
+  height: var(--control-button-size);
+  border-radius: 50%;
+  background: var(--glass-surface);
+  border: none;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base) var(--ease-out);
+  position: relative;
+}
+
+.button:hover {
+  background: var(--color-gray-700);
+  transform: scale(1.1);
+}
+
+.button:active {
+  transform: scale(0.95);
+}
+
+.button.disabled {
+  background: var(--color-red);
+  color: var(--text-primary);
+}
+
+.button.disabled:hover {
+  background: #dc2626;
+}
+
+.button.active {
+  background: var(--color-blue);
+  color: var(--text-primary);
+  box-shadow: var(--glow-active);
+}
+
+.leaveButton {
+  width: var(--control-button-size);
+  height: var(--control-button-size);
+  border-radius: var(--radius-full);
+  background: var(--color-red);
+  border: none;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base) var(--ease-out);
+  padding: 0 var(--space-4);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+}
+
+.leaveButton:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+.leaveButton:active {
+  transform: scale(0.95);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .controlBar {
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .section {
+    gap: var(--space-1);
+  }
+
+  .button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .leaveButton {
+    width: 40px;
+    height: 40px;
+  }
+}
+
