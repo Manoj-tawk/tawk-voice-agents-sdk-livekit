@@ -1,17 +1,90 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import {
   AccessToken,
   type AccessTokenOptions,
   type VideoGrant,
 } from "livekit-server-sdk";
 import { RoomConfiguration, RoomAgentDispatch } from "@livekit/protocol";
+import { randomString } from "@/lib/meet/client-utils";
+import { getLiveKitURL } from "@/lib/meet/getLiveKitURL";
+import { ConnectionDetails } from "@/lib/meet/types";
 
 // LiveKit Server Configuration
 const API_KEY = process.env.LIVEKIT_API_KEY || "devkey";
 const API_SECRET = process.env.LIVEKIT_API_SECRET || "secret";
 const LIVEKIT_URL = process.env.LIVEKIT_URL || "ws://localhost:7880";
 
+const COOKIE_KEY = "random-participant-postfix";
+
 export const revalidate = 0;
+
+// GET handler for Meet app (with agent dispatch)
+export async function GET(request: NextRequest) {
+  try {
+    // Parse query parameters
+    const roomName = request.nextUrl.searchParams.get("roomName");
+    const participantName = request.nextUrl.searchParams.get("participantName");
+    const metadata = request.nextUrl.searchParams.get("metadata") ?? "";
+    const region = request.nextUrl.searchParams.get("region");
+
+    if (!LIVEKIT_URL) {
+      throw new Error("LIVEKIT_URL is not defined");
+    }
+
+    const livekitServerUrl = region
+      ? getLiveKitURL(LIVEKIT_URL, region)
+      : LIVEKIT_URL;
+    let randomParticipantPostfix = request.cookies.get(COOKIE_KEY)?.value;
+
+    if (typeof roomName !== "string") {
+      return new NextResponse("Missing required query parameter: roomName", {
+        status: 400,
+      });
+    }
+    if (participantName === null) {
+      return new NextResponse(
+        "Missing required query parameter: participantName",
+        { status: 400 },
+      );
+    }
+
+    // Generate participant token with agent dispatch
+    if (!randomParticipantPostfix) {
+      randomParticipantPostfix = randomString(4);
+    }
+
+    const participantToken = await createParticipantTokenWithAgentDispatch(
+      {
+        identity: `${participantName}__${randomParticipantPostfix}`,
+        name: participantName,
+        metadata,
+      },
+      roomName,
+      "Quinn_353", // Agent name - must match backend ServerOptions.agentName
+    );
+
+    // Return connection details in meet format
+    const data: ConnectionDetails = {
+      serverUrl: livekitServerUrl,
+      roomName: roomName,
+      participantToken: participantToken,
+      participantName: participantName,
+    };
+
+    return new NextResponse(JSON.stringify(data), {
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": `${COOKIE_KEY}=${randomParticipantPostfix}; Path=/; HttpOnly; SameSite=Strict; Secure; Expires=${getCookieExpirationTime()}`,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("[connection-details GET] Error:", error);
+      return new NextResponse(error.message, { status: 500 });
+    }
+    return new NextResponse("Internal server error", { status: 500 });
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -76,6 +149,42 @@ export async function POST(req: Request) {
   }
 }
 
+// Create token with agent dispatch (for meet rooms)
+async function createParticipantTokenWithAgentDispatch(
+  userInfo: AccessTokenOptions,
+  roomName: string,
+  agentName: string,
+): Promise<string> {
+  const at = new AccessToken(API_KEY, API_SECRET, userInfo);
+  at.ttl = "5m";
+
+  const grant: VideoGrant = {
+    room: roomName,
+    roomJoin: true,
+    canPublish: true,
+    canPublishData: true,
+    canSubscribe: true,
+  };
+  at.addGrant(grant);
+
+  // ✅ CRITICAL: Add agent dispatch for automatic agent join
+  // Reference: https://docs.livekit.io/agents/server/agent-dispatch#dispatch-on-participant-connection
+  at.roomConfig = new RoomConfiguration({
+    agents: [
+      new RoomAgentDispatch({
+        agentName: agentName, // Must match backend ServerOptions.agentName
+      }),
+    ],
+  });
+
+  console.log(
+    `[connection-details] Token created with agent dispatch for room: ${roomName}, agent: ${agentName}`,
+  );
+
+  return await at.toJwt();
+}
+
+// Create token for voice assistant (POST endpoint)
 async function createParticipantToken(
   userInfo: AccessTokenOptions,
   roomName: string,
@@ -124,4 +233,12 @@ async function createParticipantToken(
   }
 
   return token;
+}
+
+function getCookieExpirationTime(): string {
+  const now = new Date();
+  const time = now.getTime();
+  const expireTime = time + 60 * 120 * 1000;
+  now.setTime(expireTime);
+  return now.toUTCString();
 }
