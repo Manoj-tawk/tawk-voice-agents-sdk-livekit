@@ -1,24 +1,25 @@
 services:
-  livekit:
-    image: livekit/livekit-server:latest
-    # Use config file for proper local development setup
-    # This ensures correct IP advertisement for WebRTC
-    command: --config /etc/livekit.yaml --bind 0.0.0.0
-    volumes:
-      - ./livekit.yaml:/etc/livekit.yaml:ro
-    ports:
-      - "7880:7880"      # API / WebSocket
-      - "7881:7881/tcp"  # WebRTC TCP fallback
-      - "50000-50100:50000-50100/udp"  # WebRTC UDP ports (required for media)
-      - "3478:3478/udp"  # TURN/UDP server
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7880/"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    # Note: On macOS Docker Desktop, we need to configure LiveKit to advertise
-    # localhost instead of Docker internal IP for WebRTC to work
+  # LiveKit server removed - running locally on machine
+  # livekit:
+  #   image: livekit/livekit-server:latest
+  #   # Use config file for proper local development setup
+  #   # This ensures correct IP advertisement for WebRTC
+  #   command: --config /etc/livekit.yaml --bind 0.0.0.0
+  #   volumes:
+  #     - ./livekit.yaml:/etc/livekit.yaml:ro
+  #   ports:
+  #     - "7880:7880"      # API / WebSocket
+  #     - "7881:7881/tcp"  # WebRTC TCP fallback
+  #     - "50000-50100:50000-50100/udp"  # WebRTC UDP ports (required for media)
+  #     - "3478:3478/udp"  # TURN/UDP server
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:7880/"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
+  #   # Note: On macOS Docker Desktop, we need to configure LiveKit to advertise
+  #   # localhost instead of Docker internal IP for WebRTC to work
 
   redis:
     image: redis:7-alpine
