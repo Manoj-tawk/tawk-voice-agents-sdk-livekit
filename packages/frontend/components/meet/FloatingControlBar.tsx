@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import { Track } from "livekit-client";
 import {
   useLocalParticipant,
-  MediaDeviceMenu,
+  useMediaDeviceSelect,
   useTrackToggle,
+  useMaybeRoomContext,
 } from "@livekit/components-react";
 import styles from "./FloatingControlBar.module.css";
 
@@ -30,8 +31,8 @@ export function FloatingControlBar({
   isSettingsOpen,
   isVisible,
 }: FloatingControlBarProps) {
-  const { isMicrophoneEnabled, isCameraEnabled, isScreenShareEnabled } =
-    useLocalParticipant();
+  const room = useMaybeRoomContext();
+  const { microphoneTrack, cameraTrack } = useLocalParticipant();
 
   const {
     toggle: toggleMic,
@@ -50,6 +51,27 @@ export function FloatingControlBar({
     enabled: screenShareEnabled,
     pending: screenSharePending,
   } = useTrackToggle({ source: Track.Source.ScreenShare });
+
+  // Device selection hooks
+  const {
+    devices: microphones,
+    activeDeviceId: activeMicId,
+    setActiveMediaDevice: setActiveMic,
+  } = useMediaDeviceSelect({
+    kind: "audioinput",
+    room,
+    track: microphoneTrack,
+  });
+
+  const {
+    devices: cameras,
+    activeDeviceId: activeCameraId,
+    setActiveMediaDevice: setActiveCamera,
+  } = useMediaDeviceSelect({
+    kind: "videoinput",
+    room,
+    track: cameraTrack,
+  });
 
   const [showMicMenu, setShowMicMenu] = useState(false);
   const [showCameraMenu, setShowCameraMenu] = useState(false);
@@ -98,24 +120,41 @@ export function FloatingControlBar({
                 </svg>
               )}
             </button>
-            <button
-              className={styles.menuButton}
-              onClick={() => setShowMicMenu(!showMicMenu)}
-              title="Select microphone"
-            >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="currentColor"
-              >
-                <path d="M6 9l-4-4h8z" />
-              </svg>
-            </button>
-            {showMicMenu && (
-              <div className={styles.deviceMenu}>
-                <MediaDeviceMenu kind="audioinput" />
-              </div>
+            {microphones.length > 1 && (
+              <>
+                <button
+                  className={styles.menuButton}
+                  onClick={() => setShowMicMenu(!showMicMenu)}
+                  title="Select microphone"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="currentColor"
+                  >
+                    <path d="M6 9l-4-4h8z" />
+                  </svg>
+                </button>
+                {showMicMenu && (
+                  <div className={styles.deviceMenu}>
+                    {microphones.map((device) => (
+                      <button
+                        key={device.deviceId}
+                        className={`${styles.deviceItem} ${
+                          device.deviceId === activeMicId ? styles.active : ""
+                        }`}
+                        onClick={() => {
+                          setActiveMic(device.deviceId);
+                          setShowMicMenu(false);
+                        }}
+                      >
+                        {device.label || "Unknown Device"}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -153,24 +192,43 @@ export function FloatingControlBar({
                 </svg>
               )}
             </button>
-            <button
-              className={styles.menuButton}
-              onClick={() => setShowCameraMenu(!showCameraMenu)}
-              title="Select camera"
-            >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="currentColor"
-              >
-                <path d="M6 9l-4-4h8z" />
-              </svg>
-            </button>
-            {showCameraMenu && (
-              <div className={styles.deviceMenu}>
-                <MediaDeviceMenu kind="videoinput" />
-              </div>
+            {cameras.length > 1 && (
+              <>
+                <button
+                  className={styles.menuButton}
+                  onClick={() => setShowCameraMenu(!showCameraMenu)}
+                  title="Select camera"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="currentColor"
+                  >
+                    <path d="M6 9l-4-4h8z" />
+                  </svg>
+                </button>
+                {showCameraMenu && (
+                  <div className={styles.deviceMenu}>
+                    {cameras.map((device) => (
+                      <button
+                        key={device.deviceId}
+                        className={`${styles.deviceItem} ${
+                          device.deviceId === activeCameraId
+                            ? styles.active
+                            : ""
+                        }`}
+                        onClick={() => {
+                          setActiveCamera(device.deviceId);
+                          setShowCameraMenu(false);
+                        }}
+                      >
+                        {device.label || "Unknown Device"}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
 

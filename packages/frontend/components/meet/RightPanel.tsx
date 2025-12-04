@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { Room, ParticipantKind } from "livekit-client";
-import { useParticipants, MediaDeviceMenu } from "@livekit/components-react";
+import {
+  useParticipants,
+  useMediaDeviceSelect,
+  useLocalParticipant,
+  useMaybeRoomContext,
+} from "@livekit/components-react";
 import styles from "./RightPanel.module.css";
 
 interface RightPanelProps {
@@ -13,10 +18,43 @@ interface RightPanelProps {
 
 export function RightPanel({ room, activePanel, onClose }: RightPanelProps) {
   const participants = useParticipants();
+  const { microphoneTrack, cameraTrack } = useLocalParticipant();
+  const roomContext = useMaybeRoomContext();
+
   const [messages, setMessages] = useState<
     Array<{ sender: string; text: string; time: string }>
   >([]);
   const [messageInput, setMessageInput] = useState("");
+
+  // Device selection hooks
+  const {
+    devices: microphones,
+    activeDeviceId: activeMicId,
+    setActiveMediaDevice: setActiveMic,
+  } = useMediaDeviceSelect({
+    kind: "audioinput",
+    room: roomContext,
+    track: microphoneTrack,
+  });
+
+  const {
+    devices: cameras,
+    activeDeviceId: activeCameraId,
+    setActiveMediaDevice: setActiveCamera,
+  } = useMediaDeviceSelect({
+    kind: "videoinput",
+    room: roomContext,
+    track: cameraTrack,
+  });
+
+  const {
+    devices: speakers,
+    activeDeviceId: activeSpeakerId,
+    setActiveMediaDevice: setActiveSpeaker,
+  } = useMediaDeviceSelect({
+    kind: "audiooutput",
+    room: roomContext,
+  });
 
   // Register text stream handler for transcriptions
   useEffect(() => {
@@ -140,15 +178,51 @@ export function RightPanel({ room, activePanel, onClose }: RightPanelProps) {
         <div className={styles.settingsContainer}>
           <div className={styles.settingSection}>
             <h4>Microphone</h4>
-            <MediaDeviceMenu kind="audioinput" />
+            <div className={styles.deviceList}>
+              {microphones.map((device) => (
+                <button
+                  key={device.deviceId}
+                  className={`${styles.deviceButton} ${
+                    device.deviceId === activeMicId ? styles.active : ""
+                  }`}
+                  onClick={() => setActiveMic(device.deviceId)}
+                >
+                  {device.label || "Unknown Microphone"}
+                </button>
+              ))}
+            </div>
           </div>
           <div className={styles.settingSection}>
             <h4>Camera</h4>
-            <MediaDeviceMenu kind="videoinput" />
+            <div className={styles.deviceList}>
+              {cameras.map((device) => (
+                <button
+                  key={device.deviceId}
+                  className={`${styles.deviceButton} ${
+                    device.deviceId === activeCameraId ? styles.active : ""
+                  }`}
+                  onClick={() => setActiveCamera(device.deviceId)}
+                >
+                  {device.label || "Unknown Camera"}
+                </button>
+              ))}
+            </div>
           </div>
           <div className={styles.settingSection}>
             <h4>Speaker</h4>
-            <MediaDeviceMenu kind="audiooutput" />
+            <div className={styles.deviceList}>
+              {speakers.map((device) => (
+                <button
+                  key={device.deviceId}
+                  className={`${styles.deviceButton} ${
+                    device.deviceId === activeSpeakerId ? styles.active : ""
+                  }`}
+                  onClick={() => setActiveSpeaker(device.deviceId)}
+                >
+                  {device.label || "Unknown Speaker"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       ) : (

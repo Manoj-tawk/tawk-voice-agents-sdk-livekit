@@ -251,6 +251,41 @@
   font-weight: var(--font-semibold);
 }
 
+.deviceList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.deviceButton {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--glass-surface);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deviceButton:hover {
+  background: var(--color-gray-700);
+  color: var(--text-primary);
+  border-color: var(--color-blue);
+}
+
+.deviceButton.active {
+  background: var(--color-blue);
+  color: var(--text-primary);
+  border-color: var(--color-blue);
+  font-weight: var(--font-semibold);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {
