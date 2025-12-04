@@ -16,6 +16,7 @@ import {
 } from "@/components/livekit/agent-control-bar/agent-control-bar";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../livekit/scroll-area/scroll-area";
+import styles from "./session-view.module.css";
 
 const MotionBottom = motion.create("div");
 
@@ -94,6 +95,12 @@ export const SessionView = ({
       className="bg-background relative z-10 h-full w-full overflow-hidden"
       {...props}
     >
+      {/* Animated Background */}
+      <div className={styles.background}>
+        <div className={styles.gradientOrb1} />
+        <div className={styles.gradientOrb2} />
+      </div>
+
       {/* Chat Transcript */}
       <div
         className={cn(

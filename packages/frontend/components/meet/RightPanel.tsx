@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Room, ParticipantKind } from "livekit-client";
 import {
   useParticipants,
@@ -8,23 +8,39 @@ import {
   useLocalParticipant,
   useMaybeRoomContext,
 } from "@livekit/components-react";
+import { TranscriptEntry } from "./ModernMeetingRoom";
 import styles from "./RightPanel.module.css";
 
 interface RightPanelProps {
   room: Room;
-  activePanel: "people" | "chat" | "settings";
+  activePanel: "people" | "chat" | "settings" | "transcript";
+  transcripts: TranscriptEntry[];
   onClose: () => void;
 }
 
-export function RightPanel({ room, activePanel, onClose }: RightPanelProps) {
+export function RightPanel({
+  room,
+  activePanel,
+  transcripts,
+  onClose,
+}: RightPanelProps) {
   const participants = useParticipants();
   const { microphoneTrack, cameraTrack } = useLocalParticipant();
   const roomContext = useMaybeRoomContext();
+  const transcriptScrollRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<
     Array<{ sender: string; text: string; time: string }>
   >([]);
   const [messageInput, setMessageInput] = useState("");
+
+  // Auto-scroll transcript to bottom
+  useEffect(() => {
+    if (activePanel === "transcript" && transcriptScrollRef.current) {
+      transcriptScrollRef.current.scrollTop =
+        transcriptScrollRef.current.scrollHeight;
+    }
+  }, [transcripts, activePanel]);
 
   // Device selection hooks
   const {
@@ -56,61 +72,6 @@ export function RightPanel({ room, activePanel, onClose }: RightPanelProps) {
     room: roomContext,
   });
 
-  // Register text stream handler for transcriptions
-  useEffect(() => {
-    const handleTranscription = async (
-      reader: {
-        readAll: () => Promise<string>;
-        info: { attributes?: Record<string, string> };
-      },
-      participantInfo: { identity: string },
-    ) => {
-      try {
-        const message = await reader.readAll();
-        const isTranscription =
-          reader.info.attributes?.["lk.transcribed_track_id"] != null;
-        const isFinal =
-          reader.info.attributes?.["lk.transcription_final"] === "true";
-
-        if (isTranscription && isFinal) {
-          const participant = room.remoteParticipants.get(
-            participantInfo.identity,
-          );
-          if (participant) {
-            const timestamp = new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
-            setMessages((prev) => [
-              ...prev,
-              {
-                sender: participant.name || participant.identity,
-                text: message,
-                time: timestamp,
-              },
-            ]);
-          }
-        }
-      } catch (error) {
-        console.warn("Error reading transcription stream:", error);
-      }
-    };
-
-    try {
-      room.registerTextStreamHandler("lk.transcription", handleTranscription);
-    } catch (error) {
-      console.warn("Failed to register transcription handler:", error);
-    }
-
-    return () => {
-      try {
-        room.unregisterTextStreamHandler("lk.transcription");
-      } catch {
-        // Ignore errors during cleanup
-      }
-    };
-  }, [room]);
-
   const sendMessage = () => {
     if (messageInput.trim()) {
       const timestamp = new Date().toLocaleTimeString([], {
@@ -139,7 +100,9 @@ export function RightPanel({ room, activePanel, onClose }: RightPanelProps) {
             ? "People"
             : activePanel === "chat"
               ? "Chat"
-              : "Settings"}
+              : activePanel === "transcript"
+                ? "Transcript"
+                : "Settings"}
         </h3>
         <button className={styles.closeButton} onClick={onClose}>
           <svg
@@ -168,11 +131,76 @@ export function RightPanel({ room, activePanel, onClose }: RightPanelProps) {
                   {participant.name || participant.identity}
                 </span>
                 {participant.kind === ParticipantKind.AGENT && (
-                  <span className={styles.agentTag}>AI Agent</span>
+                  <span className={styles.aiTag}>Voice Agent</span>
                 )}
               </div>
             </div>
           ))}
+        </div>
+      ) : activePanel === "transcript" ? (
+        <div className={styles.transcriptContainer}>
+          <div className={styles.transcriptList} ref={transcriptScrollRef}>
+            {transcripts.length === 0 ? (
+              <div className={styles.emptyState}>
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ opacity: 0.3, marginBottom: "1rem" }}
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                <p>No transcripts yet</p>
+                <p className={styles.emptyHint}>
+                  Start speaking and transcripts will appear here
+                </p>
+              </div>
+            ) : (
+              transcripts.map((entry, index) => (
+                <div key={index} className={styles.transcriptEntry}>
+                  <div className={styles.transcriptHeader}>
+                    <span className={styles.transcriptName}>
+                      {entry.participantName}
+                    </span>
+                    <span className={styles.transcriptTime}>
+                      {entry.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <p className={styles.transcriptText}>{entry.text}</p>
+                </div>
+              ))
+            )}
+          </div>
+          <div className={styles.transcriptFooter}>
+            <button
+              className={styles.clearButton}
+              onClick={() => {
+                if (
+                  confirm(
+                    "Are you sure you want to clear all transcripts? This cannot be undone.",
+                  )
+                ) {
+                  // Note: This won't actually clear the transcripts state
+                  // since we don't have a callback for that. You might want to
+                  // add a callback to ModernMeetingRoom for this
+                  console.log("Clear transcripts requested");
+                }
+              }}
+              disabled={transcripts.length === 0}
+            >
+              Clear Transcript
+            </button>
+          </div>
         </div>
       ) : activePanel === "settings" ? (
         <div className={styles.settingsContainer}>

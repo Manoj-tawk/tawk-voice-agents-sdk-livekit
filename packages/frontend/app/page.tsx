@@ -48,25 +48,13 @@ export default function ModernLandingPage() {
             fill="none"
             className={styles.logoIcon}
           >
-            <circle
-              cx="16"
-              cy="16"
-              r="14"
-              stroke="url(#gradient)"
-              strokeWidth="2"
-            />
+            <circle cx="16" cy="16" r="14" stroke="#FFFFFF" strokeWidth="2" />
             <path
               d="M16 8v16M8 16h16"
-              stroke="url(#gradient)"
+              stroke="#FFFFFF"
               strokeWidth="2"
               strokeLinecap="round"
             />
-            <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#667eea" />
-                <stop offset="100%" stopColor="#764ba2" />
-              </linearGradient>
-            </defs>
           </svg>
           <span className={styles.logoText}>Tawk Meet</span>
         </div>
@@ -84,15 +72,15 @@ export default function ModernLandingPage() {
       <div className={styles.hero}>
         <div className={styles.heroContent}>
           <h1 className={styles.title}>
-            <span className={styles.gradientText}>AI-Powered</span>
+            <span className={styles.gradientText}>Enterprise-Grade</span>
             <br />
             Video Conferencing
             <br />
-            for Modern Teams
+            with AI Voice Agent
           </h1>
           <p className={styles.subtitle}>
-            Meet with intelligence. Every conversation enhanced by AI
-            assistance.
+            Professional video meetings powered by intelligent voice agents.
+            Secure, reliable, and built for business.
           </p>
 
           {/* Main CTA */}
@@ -120,7 +108,7 @@ export default function ModernLandingPage() {
                 </svg>
               }
             >
-              Start Meeting with AI Agent
+              New Meeting
             </Button>
 
             <div className={styles.divider}>
@@ -154,7 +142,7 @@ export default function ModernLandingPage() {
                 onClick={joinMeeting}
                 disabled={!roomCode.trim()}
               >
-                Join →
+                Join Meeting
               </Button>
             </div>
           </div>
@@ -163,21 +151,21 @@ export default function ModernLandingPage() {
           <div className={styles.features}>
             <div className={styles.feature}>
               <span className={styles.featureIcon}>✨</span>
-              <span>Real-time transcription</span>
+              <span>Live Transcription</span>
             </div>
             <div className={styles.feature}>
               <span className={styles.featureIcon}>🎯</span>
-              <span>Smart summaries</span>
+              <span>Meeting Summaries</span>
             </div>
             <div className={styles.feature}>
               <span className={styles.featureIcon}>🤖</span>
-              <span>AI assistance</span>
+              <span>Voice Agent Support</span>
             </div>
           </div>
 
-          {/* Voice Assistant Link */}
+          {/* Voice Agent Link */}
           <div className={styles.voiceAssistantLink}>
-            <a href="/voice-assistant">Try our Voice Assistant →</a>
+            <a href="/voice-assistant">Voice Agent Demo →</a>
           </div>
         </div>
       </div>

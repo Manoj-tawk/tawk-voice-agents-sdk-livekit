@@ -88,9 +88,9 @@ export function ModernPreJoin({ roomName, onSubmit }: ModernPreJoinProps) {
       <div className={styles.content}>
         <div className={styles.header}>
           <Button variant="ghost" onClick={() => window.history.back()}>
-            ← Back
+            ← Back to Home
           </Button>
-          <h1 className={styles.title}>Ready to join?</h1>
+          <h1 className={styles.title}>Join Meeting</h1>
         </div>
 
         <div className={styles.previewSection}>

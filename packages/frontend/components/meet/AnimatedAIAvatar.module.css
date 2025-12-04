@@ -1,0 +1,198 @@
+.container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Outer glow ring */
+.glowRing {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid var(--color-spotify-green);
+  box-shadow:
+    0 0 20px rgba(29, 185, 84, 0.3),
+    0 0 40px rgba(29, 185, 84, 0.2),
+    inset 0 0 20px rgba(29, 185, 84, 0.1);
+}
+
+/* Middle ring */
+.middleRing {
+  position: absolute;
+  width: 85%;
+  height: 85%;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--bg-primary), var(--bg-primary)) padding-box,
+    linear-gradient(
+        135deg,
+        var(--color-spotify-green),
+        transparent,
+        var(--color-spotify-green)
+      )
+      border-box;
+}
+
+/* Robot Container */
+.robotContainer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* Robot Head */
+.robotHead {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+  border-radius: 20px;
+  border: 3px solid var(--color-spotify-green);
+  box-shadow:
+    0 0 20px rgba(29, 185, 84, 0.3),
+    inset 0 -10px 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+}
+
+/* Antenna */
+.antenna {
+  position: absolute;
+  top: -15px;
+  width: 3px;
+  height: 15px;
+  background: var(--color-spotify-green);
+  border-radius: 2px;
+  transform-origin: bottom center;
+}
+
+.antennaTip {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background: var(--color-spotify-green);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--color-spotify-green);
+}
+
+/* Eyes */
+.eyes {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.eye {
+  width: 20px;
+  height: 20px;
+  background: var(--color-spotify-green);
+  border-radius: 50%;
+  box-shadow:
+    0 0 10px var(--color-spotify-green),
+    inset 0 0 5px rgba(255, 255, 255, 0.5);
+  transform-origin: center;
+}
+
+/* Mouth */
+.mouth {
+  width: 40px;
+  height: 8px;
+  background: var(--color-spotify-green);
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 0 10px var(--color-spotify-green);
+  transform-origin: center;
+}
+
+/* Cheek Lights */
+.cheekLight {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  background: var(--color-spotify-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--color-spotify-green);
+}
+
+/* Robot Body */
+.robotBody {
+  width: 70px;
+  height: 60px;
+  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+  border-radius: 15px;
+  border: 3px solid var(--color-spotify-green);
+  box-shadow:
+    0 0 15px rgba(29, 185, 84, 0.2),
+    inset 0 -10px 15px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Chest Display */
+.chestDisplay {
+  width: 50px;
+  height: 35px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  border: 2px solid var(--color-spotify-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+}
+
+/* Waveform in chest */
+.waveform {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 100%;
+}
+
+.waveBar {
+  width: 4px;
+  height: 100%;
+  background: var(--color-spotify-green);
+  border-radius: 2px;
+  transform-origin: bottom;
+  box-shadow: 0 0 5px var(--color-spotify-green);
+}
+
+/* Responsive sizing */
+@media (max-width: 768px) {
+  .robotHead {
+    width: 70px;
+    height: 70px;
+  }
+
+  .robotBody {
+    width: 55px;
+    height: 50px;
+  }
+
+  .eye {
+    width: 16px;
+    height: 16px;
+  }
+
+  .mouth {
+    width: 32px;
+    height: 6px;
+  }
+}

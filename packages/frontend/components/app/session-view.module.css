@@ -1,0 +1,51 @@
+/* Animated Background */
+.background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.gradientOrb1,
+.gradientOrb2 {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(150px);
+  opacity: 0.15;
+  animation: float 20s ease-in-out infinite;
+}
+
+.gradientOrb1 {
+  width: 700px;
+  height: 700px;
+  background: linear-gradient(135deg, #1DB954 0%, #1ED760 100%);
+  top: -300px;
+  right: -300px;
+  animation-delay: 0s;
+}
+
+.gradientOrb2 {
+  width: 600px;
+  height: 600px;
+  background: linear-gradient(135deg, #1ED760 0%, #1DB954 100%);
+  bottom: -250px;
+  left: -250px;
+  animation-delay: -10s;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(80px, -80px) scale(1.1);
+  }
+  66% {
+    transform: translate(-60px, 60px) scale(0.9);
+  }
+}
+

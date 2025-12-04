@@ -3,9 +3,14 @@
 import React from "react";
 import { useParticipants } from "@livekit/components-react";
 import { ParticipantTile } from "./ParticipantTile";
+import { ActiveCaption } from "./ModernMeetingRoom";
 import styles from "./ParticipantGrid.module.css";
 
-export function ParticipantGrid() {
+interface ParticipantGridProps {
+  activeCaptions: Map<string, ActiveCaption>;
+}
+
+export function ParticipantGrid({ activeCaptions }: ParticipantGridProps) {
   const participants = useParticipants();
 
   const getGridClass = () => {
@@ -19,7 +24,11 @@ export function ParticipantGrid() {
   return (
     <div className={`${styles.container} ${getGridClass()}`}>
       {participants.map((participant) => (
-        <ParticipantTile key={participant.identity} participant={participant} />
+        <ParticipantTile
+          key={participant.identity}
+          participant={participant}
+          activeCaption={activeCaptions.get(participant.identity)}
+        />
       ))}
     </div>
   );

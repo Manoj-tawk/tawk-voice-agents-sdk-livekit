@@ -30,7 +30,7 @@
 .gradientOrb1 {
   width: 500px;
   height: 500px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1DB954 0%, #1ED760 100%);
   top: -200px;
   left: -200px;
   animation-delay: 0s;
@@ -39,7 +39,7 @@
 .gradientOrb2 {
   width: 400px;
   height: 400px;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #1DB954 0%, #1ED760 100%);
   top: 50%;
   right: -150px;
   animation-delay: -7s;
@@ -48,7 +48,7 @@
 .gradientOrb3 {
   width: 450px;
   height: 450px;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #1DB954 0%, #1ED760 100%);
   bottom: -200px;
   left: 30%;
   animation-delay: -14s;
@@ -223,7 +223,7 @@
 }
 
 .voiceAssistantLink a {
-  color: var(--color-blue);
+  color: var(--color-spotify-green);
   text-decoration: none;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
@@ -231,7 +231,7 @@
 }
 
 .voiceAssistantLink a:hover {
-  color: var(--color-purple);
+  color: #1ED760; /* Lighter Spotify green on hover */
 }
 
 /* Responsive */

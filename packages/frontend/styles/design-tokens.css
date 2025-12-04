@@ -21,22 +21,22 @@
   --color-gray-100: #E0E0E0;
   --color-white: #FFFFFF;
 
-  /* Accent Colors */
+  /* Accent Colors - Spotify Theme */
   --color-blue: #4F9EFF;
-  --color-purple: #A78BFA;
+  --color-spotify-green: #1DB954;
+  --color-green: #1DB954; /* Spotify Green */
   --color-pink: #FB7185;
   --color-cyan: #00F2FE;
-  --color-green: #10B981;
   --color-red: #EF4444;
   --color-orange: #F59E0B;
 
-  /* Gradient Definitions */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-ai: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --gradient-success: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-  --gradient-hero: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15), transparent 50%), 
-                   radial-gradient(circle at 80% 80%, rgba(247, 146, 180, 0.15), transparent 50%);
+  /* Gradient Definitions - Spotify Green Theme */
+  --gradient-primary: linear-gradient(135deg, #1DB954 0%, #1ED760 100%);
+  --gradient-ai: linear-gradient(135deg, #1DB954 0%, #1ED760 100%);
+  --gradient-accent: linear-gradient(135deg, #1DB954 0%, #1ED760 100%);
+  --gradient-success: linear-gradient(135deg, #1DB954 0%, #1ED760 100%);
+  --gradient-hero: radial-gradient(circle at 20% 50%, rgba(29, 185, 84, 0.15), transparent 50%), 
+                   radial-gradient(circle at 80% 80%, rgba(30, 215, 96, 0.15), transparent 50%);
 
   /* Semantic Colors */
   --bg-primary: var(--color-black);
@@ -67,9 +67,9 @@
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
   --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.5);
   
-  --glow-ai: 0 0 40px rgba(251, 113, 133, 0.4);
-  --glow-active: 0 0 20px rgba(79, 158, 255, 0.3);
-  --glow-success: 0 0 20px rgba(16, 185, 129, 0.3);
+  --glow-ai: 0 0 40px rgba(29, 185, 84, 0.4);
+  --glow-active: 0 0 20px rgba(29, 185, 84, 0.3);
+  --glow-success: 0 0 20px rgba(29, 185, 84, 0.3);
 
   /* ========================================
      SPACING SYSTEM
