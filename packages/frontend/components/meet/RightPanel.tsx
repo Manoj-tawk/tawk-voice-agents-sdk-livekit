@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { Room, ParticipantKind } from "livekit-client";
-import { useParticipants } from "@livekit/components-react";
+import { useParticipants, MediaDeviceMenu } from "@livekit/components-react";
 import styles from "./RightPanel.module.css";
 
 interface RightPanelProps {
   room: Room;
-  activePanel: "people" | "chat";
+  activePanel: "people" | "chat" | "settings";
   onClose: () => void;
 }
 
@@ -97,7 +97,11 @@ export function RightPanel({ room, activePanel, onClose }: RightPanelProps) {
     <div className={styles.container}>
       <div className={styles.header}>
         <h3 className={styles.title}>
-          {activePanel === "people" ? "People" : "Chat"}
+          {activePanel === "people"
+            ? "People"
+            : activePanel === "chat"
+              ? "Chat"
+              : "Settings"}
         </h3>
         <button className={styles.closeButton} onClick={onClose}>
           <svg
@@ -131,6 +135,21 @@ export function RightPanel({ room, activePanel, onClose }: RightPanelProps) {
               </div>
             </div>
           ))}
+        </div>
+      ) : activePanel === "settings" ? (
+        <div className={styles.settingsContainer}>
+          <div className={styles.settingSection}>
+            <h4>Microphone</h4>
+            <MediaDeviceMenu kind="audioinput" />
+          </div>
+          <div className={styles.settingSection}>
+            <h4>Camera</h4>
+            <MediaDeviceMenu kind="videoinput" />
+          </div>
+          <div className={styles.settingSection}>
+            <h4>Speaker</h4>
+            <MediaDeviceMenu kind="audiooutput" />
+          </div>
         </div>
       ) : (
         <div className={styles.chatContainer}>

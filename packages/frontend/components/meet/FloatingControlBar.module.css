@@ -44,6 +44,61 @@
   gap: var(--space-2);
 }
 
+/* Control Group for device menus */
+.controlGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--glass-surface);
+  border-radius: var(--radius-full);
+  overflow: visible;
+}
+
+.menuButton {
+  width: 24px;
+  height: var(--control-button-size);
+  background: transparent;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base) var(--ease-out);
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+}
+
+.menuButton:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.deviceMenu {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  min-width: 200px;
+  background: var(--control-bar-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-modal);
+  animation: slideUpFade 0.2s var(--ease-out);
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .button {
   width: var(--control-button-size);
   height: var(--control-button-size);
@@ -57,6 +112,10 @@
   cursor: pointer;
   transition: all var(--transition-base) var(--ease-out);
   position: relative;
+}
+
+.controlGroup .button {
+  border-radius: var(--radius-full) 0 0 var(--radius-full);
 }
 
 .button:hover {

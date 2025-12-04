@@ -16,6 +16,7 @@ interface ModernMeetingRoomProps {
 export function ModernMeetingRoom({ room, onLeave }: ModernMeetingRoomProps) {
   const [isPeopleOpen, setIsPeopleOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isControlsVisible, setIsControlsVisible] = useState(true);
   const [hideControlsTimeout, setHideControlsTimeout] =
     useState<NodeJS.Timeout | null>(null);
@@ -52,31 +53,41 @@ export function ModernMeetingRoom({ room, onLeave }: ModernMeetingRoomProps) {
         </div>
 
         {/* Right Panel */}
-        {(isPeopleOpen || isChatOpen) && (
+        {(isPeopleOpen || isChatOpen || isSettingsOpen) && (
           <RightPanel
             room={room}
-            activePanel={isPeopleOpen ? "people" : "chat"}
+            activePanel={
+              isPeopleOpen ? "people" : isChatOpen ? "chat" : "settings"
+            }
             onClose={() => {
               setIsPeopleOpen(false);
               setIsChatOpen(false);
+              setIsSettingsOpen(false);
             }}
           />
         )}
 
         {/* Floating Control Bar */}
         <FloatingControlBar
-          room={room}
           onLeave={onLeave}
           onPeopleToggle={() => {
             setIsPeopleOpen(!isPeopleOpen);
             setIsChatOpen(false);
+            setIsSettingsOpen(false);
           }}
           onChatToggle={() => {
             setIsChatOpen(!isChatOpen);
             setIsPeopleOpen(false);
+            setIsSettingsOpen(false);
+          }}
+          onSettingsToggle={() => {
+            setIsSettingsOpen(!isSettingsOpen);
+            setIsPeopleOpen(false);
+            setIsChatOpen(false);
           }}
           isPeopleOpen={isPeopleOpen}
           isChatOpen={isChatOpen}
+          isSettingsOpen={isSettingsOpen}
           isVisible={isControlsVisible}
         />
       </div>
