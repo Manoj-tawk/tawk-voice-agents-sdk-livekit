@@ -1,7 +1,7 @@
 {
   "trunk": {
     "name": "Twilio Local Inbound",
-    "numbers": ["+1234567890"],
+    "numbers": ["+16043054382"],
     "allowed_addresses": [],
     "allowed_numbers": [],
     "metadata": "{\"provider\": \"twilio\", \"type\": \"local\"}"
