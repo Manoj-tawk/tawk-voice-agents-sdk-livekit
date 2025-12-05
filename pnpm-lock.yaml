@@ -35,9 +35,15 @@ importers:
       '@livekit/noise-cancellation-node':
         specifier: ^0.1.9
         version: 0.1.9
+      '@livekit/rtc-node':
+        specifier: ^0.13.21
+        version: 0.13.21
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
+      livekit-server-sdk:
+        specifier: ^2.13.2
+        version: 2.14.2
       zod:
         specifier: ^3.25.76
         version: 3.25.76

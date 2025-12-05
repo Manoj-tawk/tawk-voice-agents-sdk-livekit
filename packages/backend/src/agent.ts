@@ -9,6 +9,7 @@ import {
   log,
   metrics,
   voice,
+  getJobContext,
 } from "@livekit/agents";
 import * as deepgram from "@livekit/agents-plugin-deepgram";
 import * as elevenlabs from "@livekit/agents-plugin-elevenlabs";
@@ -16,6 +17,7 @@ import * as livekit from "@livekit/agents-plugin-livekit";
 import * as openai from "@livekit/agents-plugin-openai";
 import * as silero from "@livekit/agents-plugin-silero";
 import { BackgroundVoiceCancellation } from "@livekit/noise-cancellation-node";
+import { RoomServiceClient } from 'livekit-server-sdk';
 import dotenv from "dotenv";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
@@ -25,13 +27,45 @@ dotenv.config({ path: ".env.local" });
 // ==================== Marketplace AI Agent ====================
 // tawk.to marketplace assistant with order tracking, shipping, and product search
 
+// Hangup function for phone calls
+const hangUpCall = async () => {
+  const jobContext = getJobContext();
+  if (!jobContext) {
+    return;
+  }
+
+  const roomServiceClient = new RoomServiceClient(
+    process.env.LIVEKIT_URL!,
+    process.env.LIVEKIT_API_KEY!,
+    process.env.LIVEKIT_API_SECRET!
+  );
+
+  if (jobContext.room.name) {
+    await roomServiceClient.deleteRoom(jobContext.room.name);
+  }
+};
+
 class MarketplaceAgent extends voice.Agent {
   override async onEnter(): Promise<void> {
-    // Custom greeting when agent enters the session
-    this.session.generateReply({
-      instructions:
-        'Say "Welcome to TAWK.To Marketplace!" and then briefly introduce yourself as their shopping assistant who can help them find and purchase products.',
-    });
+    // Check if this is a phone call (SIP participant)
+    const sipParticipants = Array.from(this.room.remoteParticipants.values())
+      .filter((p: any) => p.kind === 'sip');
+    
+    const isPhoneCall = sipParticipants.length > 0;
+
+    if (isPhoneCall) {
+      // Phone greeting - more formal
+      this.session.generateReply({
+        instructions:
+          'Say "Thank you for calling tawk.to marketplace. I\'m your AI shopping assistant. How may I help you today?"',
+      });
+    } else {
+      // Web/app greeting - existing
+      this.session.generateReply({
+        instructions:
+          'Say "Welcome to TAWK.To Marketplace!" and then briefly introduce yourself as their shopping assistant who can help them find and purchase products.',
+      });
+    }
   }
 
   constructor() {
@@ -612,6 +646,28 @@ Remember: You're guiding them through a complete shopping experience - be helpfu
                 Date.now() + 5 * 24 * 60 * 60 * 1000,
               ).toLocaleDateString(),
             };
+          },
+        }),
+
+        // PHONE CALL MANAGEMENT
+        endCall: llm.tool({
+          description: 'Call this when the customer says goodbye or wants to end the call. Always confirm before ending. ONLY use for PHONE calls.',
+          parameters: z.object({
+            reason: z.string().describe('Brief reason for ending call (e.g., "completed purchase", "no assistance needed")'),
+          }),
+          execute: async ({ reason }, { ctx }) => {
+            // Inform customer
+            await ctx.session.generateReply({
+              instructions: `Say "Thank you for calling tawk.to marketplace. Have a great day! Goodbye!"`,
+            });
+            
+            // Wait for speech to complete
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+            
+            // Hang up
+            await hangUpCall();
+            
+            return `Call ended: ${reason}`;
           },
         }),
       },
