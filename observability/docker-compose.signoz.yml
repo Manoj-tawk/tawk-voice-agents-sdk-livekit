@@ -17,11 +17,6 @@ services:
       - clickhouse-data:/var/lib/clickhouse/
     environment:
       - CLICKHOUSE_DB=signoz_traces
-    healthcheck:
-      test: ['CMD', 'wget', '--spider', '-q', 'localhost:8123/ping']
-      interval: 30s
-      timeout: 5s
-      retries: 3
 
   # Query Service - SigNoz backend
   query-service:
