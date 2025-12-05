@@ -652,8 +652,8 @@ export default defineAgent({
       tts: new elevenlabs.TTS({
         apiKey: process.env.ELEVENLABS_API_KEY!, // Explicitly pass API key for child processes
         voice: {
-          id: "Xb7hH8MSUJpSbSDYk0k2", // Alice - clear, professional
-          name: "Alice",
+          id: "kPzsL2i3teMYv0FxEYQ6", // Custom voice from ElevenLabs library
+          name: "Custom Voice",
           category: "premade",
         },
         modelID: "eleven_turbo_v2_5", // Lowest latency model
