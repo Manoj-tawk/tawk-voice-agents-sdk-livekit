@@ -1,14 +1,26 @@
-# Twilio Telephony Integration Plan
+# Twilio Telephony Integration Plan (LOCAL SETUP)
 ## Incoming & Outgoing Calls for Tawk.to Voice Agent
+## 🏠 100% LOCAL - No LiveKit Cloud Required!
 
 ---
 
 ## 🎯 Goals
 
-1. **Inbound Calls**: Customers call Twilio number → AI agent answers
-2. **Outbound Calls**: System triggers call → AI agent calls customer
+1. **Inbound Calls**: Customers call Twilio number → AI agent answers (LOCALLY)
+2. **Outbound Calls**: System triggers call → AI agent calls customer (LOCALLY)
 3. **Unified Agent**: Same agent code handles both scenarios
-4. **Production Ready**: Reliable, monitored, cost-effective
+4. **All Local**: Everything runs on localhost with ngrok for public access
+
+---
+
+## 🏠 Local Architecture
+
+```
+Phone Call → Twilio → ngrok tunnel → localhost:5060 (LiveKit SIP)
+                                   → localhost:7880 (LiveKit WebRTC)
+                                   → localhost:8081 (Agent API)
+                                   → localhost:3000 (Frontend)
+```
 
 ---
 
@@ -36,19 +48,19 @@ twilio login
 twilio phone-numbers:list
 ```
 
-### 1.2 LiveKit CLI Setup
+### 1.2 LiveKit CLI Setup (Local)
 
 **Tasks:**
 - [ ] Install LiveKit CLI
-- [ ] Configure with your credentials
+- [ ] Configure with LOCAL credentials
 
 **Commands:**
 ```bash
 # Install
 brew install livekit
 
-# Configure (add to .env.local)
-export LIVEKIT_URL=ws://localhost:7880
+# Configure for LOCALHOST
+export LIVEKIT_URL=http://localhost:7880
 export LIVEKIT_API_KEY=devkey
 export LIVEKIT_API_SECRET=secret
 
@@ -56,7 +68,38 @@ export LIVEKIT_API_SECRET=secret
 lk sip --help
 ```
 
-### 1.3 Install Additional Packages
+**Add to `packages/backend/.env.local`:**
+```bash
+LIVEKIT_URL=ws://localhost:7880
+LIVEKIT_API_KEY=devkey
+LIVEKIT_API_SECRET=secret
+```
+
+### 1.3 Install ngrok (REQUIRED for local Twilio integration)
+
+**Why ngrok?**
+Twilio needs a PUBLIC URL to send calls to your LOCAL LiveKit server. ngrok creates a secure tunnel.
+
+**Tasks:**
+- [ ] Install ngrok
+- [ ] Get ngrok auth token (free account)
+
+**Commands:**
+```bash
+# Install ngrok
+brew install ngrok
+
+# Sign up for free: https://dashboard.ngrok.com/signup
+# Get your auth token: https://dashboard.ngrok.com/get-started/your-authtoken
+
+# Configure auth token
+ngrok config add-authtoken YOUR_AUTH_TOKEN_HERE
+
+# Test
+ngrok version
+```
+
+### 1.4 Install Additional Packages
 
 **Tasks:**
 - [ ] Install `livekit-server-sdk` for SIP operations
@@ -64,7 +107,7 @@ lk sip --help
 
 **Commands:**
 ```bash
-cd packages/backend
+cd /Users/manoj/Documents/GitHub/tawk-voice-agents-sdk-livekit/packages/backend
 pnpm add livekit-server-sdk @livekit/rtc-node
 ```
 
@@ -88,42 +131,53 @@ twilio api:core:trunks:create \
 # Output: Save the Trunk SID (TK...)
 ```
 
-### 2.2 Configure Twilio Origination (Twilio → LiveKit)
+### 2.2 Expose LiveKit with ngrok (CRITICAL for localhost)
 
 **Tasks:**
-- [ ] Point Twilio trunk to LiveKit SIP endpoint
-- [ ] For localhost: Expose LiveKit with ngrok
+- [ ] Start ngrok tunnel for LiveKit SIP port
+- [ ] Save the ngrok URL
 
-**For Production (LiveKit Cloud):**
+**Commands:**
 ```bash
-# Get your LiveKit SIP URI from:
-# https://cloud.livekit.io/projects/p_/settings/project
-# Format: sip:PROJECT_ID.sip.livekit.cloud
-
-twilio api:core:trunks:origination-urls:create \
-  --trunk-sid <TRUNK_SID> \
-  --friendly-name "LiveKit SIP" \
-  --sip-url "sip:PROJECT_ID.sip.livekit.cloud" \
-  --weight 1 --priority 1 --enabled
-```
-
-**For Localhost Development:**
-```bash
-# 1. Expose LiveKit SIP port with ngrok
+# Start ngrok tunnel for LiveKit SIP (port 5060)
 ngrok tcp 5060
 
-# Output: Forwarding tcp://0.tcp.ngrok.io:12345 -> localhost:5060
-# Use: sip:0.tcp.ngrok.io:12345
-
-# 2. Configure origination with ngrok URL
-twilio api:core:trunks:origination-urls:create \
-  --trunk-sid <TRUNK_SID> \
-  --friendly-name "LiveKit SIP (ngrok)" \
-  --sip-url "sip:0.tcp.ngrok.io:12345" \
-  --weight 1 --priority 1 --enabled
+# Output will show something like:
+# Forwarding: tcp://0.tcp.ngrok.io:12345 -> localhost:5060
+#
+# COPY THIS URL! You'll need it for Twilio configuration.
+# Example: 0.tcp.ngrok.io:12345
 ```
 
-### 2.3 Associate Phone Number with Trunk
+**⚠️ IMPORTANT:**
+- Keep this terminal running! If ngrok stops, Twilio can't reach your local LiveKit.
+- The ngrok URL changes every time you restart (free plan). Use a paid plan for a static URL.
+
+### 2.3 Configure Twilio Origination (Twilio → ngrok → localhost)
+
+**Tasks:**
+- [ ] Point Twilio trunk to your ngrok URL
+
+**Commands:**
+```bash
+# Replace <TRUNK_SID> with your Twilio trunk SID
+# Replace 0.tcp.ngrok.io:12345 with YOUR ngrok URL from above
+
+twilio api:core:trunks:origination-urls:create \
+  --trunk-sid <TRUNK_SID> \
+  --friendly-name "LiveKit Local (ngrok)" \
+  --sip-url "sip:0.tcp.ngrok.io:12345" \
+  --weight 1 --priority 1 --enabled
+
+# Example:
+# twilio api:core:trunks:origination-urls:create \
+#   --trunk-sid TKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+#   --friendly-name "LiveKit Local (ngrok)" \
+#   --sip-url "sip:0.tcp.ngrok.io:12345" \
+#   --weight 1 --priority 1 --enabled
+```
+
+### 2.4 Associate Phone Number with Trunk
 
 **Tasks:**
 - [ ] Link your Twilio phone number to the trunk
@@ -139,7 +193,7 @@ twilio api:core:trunks:phone-numbers:create \
   --phone-number-sid <PHONE_NUMBER_SID>
 ```
 
-### 2.4 Create LiveKit Inbound Trunk
+### 2.5 Create LiveKit Inbound Trunk (Local)
 
 **Tasks:**
 - [ ] Create inbound trunk in LiveKit
@@ -169,7 +223,7 @@ lk sip inbound create config/livekit-inbound-trunk.json
 lk sip inbound list
 ```
 
-### 2.5 Create Dispatch Rule (Route to Agent)
+### 2.6 Create Dispatch Rule (Route to Agent)
 
 **Tasks:**
 - [ ] Create dispatch rule to route calls to Quinn_353
